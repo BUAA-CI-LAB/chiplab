@@ -278,8 +278,23 @@ simulation_run_prog:
 	@echo "RUN simulation..."
 	@echo "============================================================================================================="
 	@echo "============================================================================================================="
-ifeq ('${TRACE_COMP}', 'y')
-	@for soft in ${soft_list}; \
+ifneq ($(EXTPROG),)
+	for soft in ${soft_list}; \
+	do 	\
+	mkdir -p tmp;	\
+	touch ./tmp/ram.dat;\
+	cat $(EXTPROG) > ./tmp/ram.dat;	\
+	make simulation_run_prog -C ./tmp -f ../Makefile_run || exit "$$?";	\
+	mkdir -p ./log/$${soft}_log;	\
+	mv ./tmp/simu_trace.txt* ./log/$${soft}_log/;	\
+	mv ./tmp/uart_output.txt ./log/$${soft}_log/;	\
+	mv ./tmp/uart_output.txt.real ./log/$${soft}_log/;	\
+	mv ./tmp/mem_trace.txt ./log/$${soft}_log/;         \
+	mv ./tmp/logs/*.${WAVEFILE} ./log/$${soft}_log/;	\
+	rm -rf ./tmp; \
+	done
+else ifeq ('${TRACE_COMP}', 'y')
+	for soft in ${soft_list}; \
 	do 	\
 	mkdir -p tmp;	\
 	cp ./log/$${soft}_log/golden_trace.txt ./tmp;	\
@@ -293,9 +308,9 @@ ifeq ('${TRACE_COMP}', 'y')
 	mv ./tmp/mem_trace.txt ./log/$${soft}_log/;         \
 	mv ./tmp/logs/*.${WAVEFILE} ./log/$${soft}_log/;	\
 	rm -rf ./tmp;    \
-	done 
+	done
 else 
-	@for soft in ${soft_list}; \
+	for soft in ${soft_list}; \
 	do 	\
 	mkdir -p tmp;	\
 	cp ./obj/$${soft}_obj/obj/rom.vlog ./tmp;	\
